@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 import joblib
 import numpy as np
 import re
+#from flask_cors import CORS
 
 app = Flask(__name__)
+#CORS(app)
 model = joblib.load("multi_intent_model.pkl")
 mlb = joblib.load("mlb.pkl")
 
@@ -54,14 +56,22 @@ def predict():
         return jsonify({"error": "message is required"}), 400
 
     text = data["message"]
+    lang = detect_language(text)
 
     result = predict_intents(text)
     if result is None:
         lang = detect_language(text)
-        msg = "مش قادر افهم سؤالك ممكن توضح اكتر" if lang == "AR" else "I didn't understand the question"
+        msg = (
+            "مش قادر افهم سؤالك ممكن توضح اكتر"
+            if lang == "AR"
+            else "I didn't understand the question"
+        )
         return jsonify({
             "input": text,
-            "output": msg,
+            "output": {
+                "unknown": 1.0
+            },
+            "message": msg,
             "language": lang
         })
 
